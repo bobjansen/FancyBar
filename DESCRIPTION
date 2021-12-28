@@ -1,0 +1,15 @@
+Package: FancyBar
+Type: Package
+Title: Calculate Various Types of OHLC Bars
+Version: 1.0
+Date: 2021-12-20
+Author: Bob Jansen
+Maintainer: Bob Jansen <bobjansen@gmail.com>
+Description: Calculate various types of OHLC bar based on the ideas of Marcos
+    López de Prado presented in "Advances in Financial Machine Learning".
+License: GPL (>= 3)
+Imports: Rcpp (>= 1.0.7), data.table (>= 1.12.0)
+LinkingTo: Rcpp
+RoxygenNote: 7.1.2
+Roxygen: list(markdown = TRUE)
+Encoding: UTF-8
