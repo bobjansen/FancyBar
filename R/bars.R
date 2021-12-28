@@ -10,6 +10,8 @@ calculateTimeBucket <- function(datetime, seconds) {
 
 #' Make time based OHLC bars
 #'
+#' The traditional OHLC bars based on buckets of time.
+#'
 #' @param ticks The original trade data.
 #' @param align_period Length of the time period to align by.
 #' @param align_by Unit of the time period, can be:
@@ -28,14 +30,14 @@ calculateTimeBucket <- function(datetime, seconds) {
 #'   * 01:05:00 if the bar length is 5 minutes
 #'   * 01:00:00 if the bar length is 1 hour
 #'
-#' The `highfrequency` uses the same logic but the timestamp of the bar is the
-#' end of the bar period.
+#' The `highfrequency` package uses the same logic but the timestamp of the bar
+#' is the end of the bar period.
 #'
 #' @return Time based OHLC bars.
 #' @import data.table
 #' @export
 makeTimeOHLCV <- function(ticks, align_period = 5L, align_by = 'minutes') {
-  if (align_by %in% c('s', 'secs', 'seconds')) {
+  if (align_by %in% c('s', 'secs', 'seconds')) { # Do nothing.
   } else if (align_by %in% c('m', 'mins', 'minutes')) {
     align_period <- align_period * 60L
   } else if (aligin_by %in% c('h', 'hours')) {
@@ -51,11 +53,13 @@ makeTimeOHLCV <- function(ticks, align_period = 5L, align_by = 'minutes') {
   bars
 }
 
-#' Make OHLC bars containing at least a certain amount of volume
+#' Volume based OHLC bars
+#'
+#' Make OHLC bars containing at least a certain amount of volume.
 #'
 #' @param ticks Tick trade data.
 #' @param target_volume The target volume for each bar.
-#' @param split_large_trades Split trades larger than target_volume into 2 or
+#' @param split_large_trades Split trades larger than `target_volume` into 2 or
 #' more bars.
 #'
 #' @import data.table
@@ -85,7 +89,8 @@ applyGroup <- function(ticks, groups) {
     high = max(price),
     low = min(price),
     close = last(price),
-    volume = sum(size)
+    volume = sum(size),
+    vwap = sum(price * size) / sum(size)
   ), by = groups]
   ticks[, groups := NULL]
   ticks

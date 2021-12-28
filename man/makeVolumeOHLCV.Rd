@@ -2,7 +2,7 @@
 % Please edit documentation in R/bars.R
 \name{makeVolumeOHLCV}
 \alias{makeVolumeOHLCV}
-\title{Make OHLC bars containing at least a certain amount of volume}
+\title{Volume based OHLC bars}
 \usage{
 makeVolumeOHLCV(ticks, target_volume, split_large_trades = FALSE)
 }
@@ -11,12 +11,12 @@ makeVolumeOHLCV(ticks, target_volume, split_large_trades = FALSE)
 
 \item{target_volume}{The target volume for each bar.}
 
-\item{split_large_trades}{Split trades larger than target_volume into 2 or
+\item{split_large_trades}{Split trades larger than \code{target_volume} into 2 or
 more bars.}
 }
 \value{
 OHLCV bars of similar volume.
 }
 \description{
-Make OHLC bars containing at least a certain amount of volume
+Make OHLC bars containing at least a certain amount of volume.
 }

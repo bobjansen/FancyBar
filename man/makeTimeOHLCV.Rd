@@ -23,7 +23,7 @@ makeTimeOHLCV(ticks, align_period = 5L, align_by = "minutes")
 Time based OHLC bars.
 }
 \description{
-Make time based OHLC bars
+The traditional OHLC bars based on buckets of time.
 }
 \details{
 Bars are aligned on multiples of the time period since midnight, that is a
@@ -35,4 +35,7 @@ tick happening at 01:06:41 will be in a bar starting on:
 \item 01:05:00 if the bar length is 5 minutes
 \item 01:00:00 if the bar length is 1 hour
 }
+
+The \code{highfrequency} package uses the same logic but the timestamp of the bar
+is the end of the bar period.
 }
