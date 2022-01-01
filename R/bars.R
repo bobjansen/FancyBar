@@ -8,6 +8,46 @@ calculateTimeBucket <- function(datetime, seconds) {
   timestamps
 }
 
+oneBarOHLCV <- function(ticks) {
+  ticks <- ticks[, .(
+    timestamp = first(timestamp),
+    open = first(price),
+    high = max(price),
+    low = min(price),
+    close = last(price),
+    volume = sum(size),
+    vwap = sum(price * size) / sum(size),
+    tickCount = .N
+  )]
+  ticks
+}
+
+mergeBar <- function(bar1, bar2) {
+  if (bar1[1L, timestamp] < bar2[1L, timestamp]) {
+    bar1[, ':='(
+      low = min(bar1[, low], bar2[, low]),
+      high = max(bar1[, high], bar2[, high]),
+      close = bar2[, close],
+      volume = bar1[, volume] + bar2[, volume],
+      vwap = (bar1[, vwap] * bar1[, volume] + bar2[, vwap] * bar2[, volume]) /
+        (bar1[, volume] + bar2[, volume]),
+      tickCount = bar1[, tickCount] + bar2[, tickCount]
+    )]
+    bar1
+  } else {
+    bar2[, ':='(
+      low = min(bar1[, low], bar2[, low]),
+      high = max(bar1[, high], bar2[, high]),
+      close = bar1[, close],
+      volume = bar1[, volume] + bar2[, volume],
+      vwap = (bar1[, vwap] * bar1[, volume] + bar2[, vwap] * bar2[, volume]) /
+        (bar1[, volume] + bar2[, volume]),
+      tickCount = bar1[, tickCount] + bar2[, tickCount]
+    )]
+    bar2
+  }
+}
+
 #' Make time based OHLC bars
 #'
 #' The traditional OHLC bars based on buckets of time.
@@ -36,7 +76,7 @@ calculateTimeBucket <- function(datetime, seconds) {
 #' @return Time based OHLC bars.
 #' @import data.table
 #' @export
-makeTimeOHLCV <- function(ticks, align_period = 5L, align_by = 'minutes') {
+timeOHLCV <- function(ticks, align_period = 5L, align_by = 'minutes') {
   if (align_by %in% c('s', 'secs', 'seconds')) { # Do nothing.
   } else if (align_by %in% c('m', 'mins', 'minutes')) {
     align_period <- align_period * 60L
@@ -53,6 +93,29 @@ makeTimeOHLCV <- function(ticks, align_period = 5L, align_by = 'minutes') {
   bars
 }
 
+
+#' Tick based OHLC bars
+#'
+#' @param ticks Input trades
+#' @param num_ticks The number of ticks to group in.
+#' @param prev_bar Bar previous to this set, will be extended with `trades` if
+#' not complete.
+#' @import data.table
+#' @export
+tickOHLCV <- function(ticks, num_ticks, prev_bar = NULL) {
+  if (!is.null(prev_bar)) {
+    remaining_ticks = num_ticks - prevbar[, tickCount]
+    prev_bar <- mergeBar(prev_bar, oneBarOHLCV(ticks[1:remaining_ticks]))
+    ticks[(remaining_ticks + 1L):.N]
+  }
+  if (nrow(ticks) > 0L) {
+    groups <- ceiling(1:nrow(ticks) / num_ticks)
+    applyGroup(rbind(prev_bar, ticks), groups)
+  } else {
+    as.data.table(prev_bar)
+  }
+}
+
 #' Volume based OHLC bars
 #'
 #' Make OHLC bars containing at least a certain amount of volume.
@@ -64,7 +127,7 @@ makeTimeOHLCV <- function(ticks, align_period = 5L, align_by = 'minutes') {
 #'
 #' @import data.table
 #' @return OHLCV bars of similar volume.
-makeVolumeOHLCV <- function(
+volumeOHLCV <- function(
   ticks, target_volume, split_large_trades = FALSE
 ) {
   if (split_large_trades) {
@@ -90,7 +153,8 @@ applyGroup <- function(ticks, groups) {
     low = min(price),
     close = last(price),
     volume = sum(size),
-    vwap = sum(price * size) / sum(size)
+    vwap = sum(price * size) / sum(size),
+    tickCount = .N
   ), by = groups]
   ticks[, groups := NULL]
   ticks
