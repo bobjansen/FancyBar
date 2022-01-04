@@ -10,6 +10,6 @@ are supported:
 # Installation
 
 ```R
-devtools::install_github('bobjansen/FancyBars')
+devtools::install_github('bobjansen/FancyBar')
 ```
 

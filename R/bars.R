@@ -1,53 +1,3 @@
-calculateTimeBucket <- function(datetime, seconds) {
-  timestamps <- as.integer(datetime)
-  input_attrs <- attributes(datetime)
-  timestamps <- timestamps - (timestamps %% seconds)
-  for (attr_name in names(input_attrs)) {
-    attr(timestamps, attr_name) <- input_attrs[[attr_name]]
-  }
-  timestamps
-}
-
-oneBarOHLCV <- function(ticks) {
-  ticks <- ticks[, .(
-    timestamp = first(timestamp),
-    open = first(price),
-    high = max(price),
-    low = min(price),
-    close = last(price),
-    volume = sum(size),
-    vwap = sum(price * size) / sum(size),
-    tickCount = .N
-  )]
-  ticks
-}
-
-mergeBar <- function(bar1, bar2) {
-  if (bar1[1L, timestamp] < bar2[1L, timestamp]) {
-    bar1[, ':='(
-      low = min(bar1[, low], bar2[, low]),
-      high = max(bar1[, high], bar2[, high]),
-      close = bar2[, close],
-      volume = bar1[, volume] + bar2[, volume],
-      vwap = (bar1[, vwap] * bar1[, volume] + bar2[, vwap] * bar2[, volume]) /
-        (bar1[, volume] + bar2[, volume]),
-      tickCount = bar1[, tickCount] + bar2[, tickCount]
-    )]
-    bar1
-  } else {
-    bar2[, ':='(
-      low = min(bar1[, low], bar2[, low]),
-      high = max(bar1[, high], bar2[, high]),
-      close = bar1[, close],
-      volume = bar1[, volume] + bar2[, volume],
-      vwap = (bar1[, vwap] * bar1[, volume] + bar2[, vwap] * bar2[, volume]) /
-        (bar1[, volume] + bar2[, volume]),
-      tickCount = bar1[, tickCount] + bar2[, tickCount]
-    )]
-    bar2
-  }
-}
-
 #' Make time based OHLC bars
 #'
 #' The traditional OHLC bars based on buckets of time.
@@ -76,7 +26,12 @@ mergeBar <- function(bar1, bar2) {
 #' @return Time based OHLC bars.
 #' @import data.table
 #' @export
-timeOHLCV <- function(ticks, align_period = 5L, align_by = 'minutes') {
+timeOHLCV <- function(
+  ticks,
+  align_period = 5L, align_by = 'minutes',
+  name = NULL,
+  add_name = getOption('FancyBar.AddSymbolName')
+) {
   if (align_by %in% c('s', 'secs', 'seconds')) { # Do nothing.
   } else if (align_by %in% c('m', 'mins', 'minutes')) {
     align_period <- align_period * 60L
@@ -90,6 +45,9 @@ timeOHLCV <- function(ticks, align_period = 5L, align_by = 'minutes') {
   groups = calculateTimeBucket(ticks[['timestamp']], align_period)
   bars <- applyGroup(ticks, groups)
   bars[, timestamp := unique(groups)]
+  if (!is.null(name) && add_name) {
+    data.table::setnames(bars, names(bars), paste(name, names(bars), sep = '.'))
+  }
   bars
 }
 
@@ -147,15 +105,65 @@ volumeOHLCV <- function(
 
 applyGroup <- function(ticks, groups) {
   ticks <- ticks[, .(
-    timestamp = first(timestamp),
-    open = first(price),
-    high = max(price),
-    low = min(price),
-    close = last(price),
-    volume = sum(size),
-    vwap = sum(price * size) / sum(size),
-    tickCount = .N
+    Timestamp = first(timestamp),
+    Open = first(price),
+    High = max(price),
+    Low = min(price),
+    Close = last(price),
+    Volume = sum(size),
+    VWAP = sum(price * size) / sum(size),
+    TickCount = .N
   ), by = groups]
   ticks[, groups := NULL]
   ticks
+}
+
+calculateTimeBucket <- function(datetime, seconds) {
+  timestamps <- as.integer(datetime)
+  input_attrs <- attributes(datetime)
+  timestamps <- timestamps - (timestamps %% seconds)
+  for (attr_name in names(input_attrs)) {
+    attr(timestamps, attr_name) <- input_attrs[[attr_name]]
+  }
+  timestamps
+}
+
+oneBarOHLCV <- function(ticks) {
+  ticks <- ticks[, .(
+    timestamp = first(timestamp),
+    Open = first(price),
+    High = max(price),
+    Low = min(price),
+    Close = last(price),
+    Volume = sum(size),
+    VWAP = sum(price * size) / sum(size),
+    TickCount = .N
+  )]
+  ticks
+}
+
+mergeBar <- function(bar1, bar2) {
+  if (bar1[1L, timestamp] < bar2[1L, timestamp]) {
+    bar1[, ':='(
+      Low = min(bar1[, low], bar2[, low]),
+      High = max(bar1[, high], bar2[, high]),
+      Close = bar2[, close],
+      Volume = bar1[, volume] + bar2[, volume],
+      VWAP = (bar1[, vwap] * bar1[, volume] + bar2[, vwap] * bar2[, volume]) /
+        (bar1[, volume] + bar2[, volume]),
+      TickCount = bar1[, tickCount] + bar2[, tickCount]
+    )]
+    bar1
+  } else {
+    bar2[, ':='(
+      Low = min(bar1[, low], bar2[, low]),
+      High = max(bar1[, high], bar2[, high]),
+      Close = bar1[, close],
+      Volume = bar1[, volume] + bar2[, volume],
+      VWAP = (bar1[, vwap] * bar1[, volume] + bar2[, vwap] * bar2[, volume]) /
+        (bar1[, volume] + bar2[, volume]),
+      TickCount = bar1[, tickCount] + bar2[, tickCount]
+    )]
+    bar2
+  }
 }
