@@ -68,3 +68,20 @@ expect_equal(bar[2L, Close], 105)
 expect_equal(bar[2L, VWAP], 750 / 7)
 expect_equal(bar[2L, Volume], 70L)
 expect_equal(bar[2L, TickCount], 2L)
+
+
+# Incomplete bar ----
+test_trades <- data.table(
+  timestamp = jan1_2020,
+  symbol = 'AAA',
+  price = 100,
+  size = 10L
+)
+bar <- tickOHLCV(test_trades, num_ticks = 2L)
+test_trades <- data.table(
+  timestamp = c(jan1_2020, jan2_2020, jan3_2020, jan4_2020),
+  symbol = 'AAA',
+  price = c(120, 100, 110, 105),
+  size = c(10L, 20L, 30L, 40L)
+)
+bar <- tickOHLCV(test_trades, num_ticks = 2L, prev_bar = bar)

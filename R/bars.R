@@ -65,7 +65,7 @@ timeOHLCV <- function(
 #' @export
 tickOHLCV <- function(ticks, num_ticks, prev_bar = NULL) {
   if (!is.null(prev_bar)) {
-    remaining_ticks = num_ticks - prevbar[, tickCount]
+    remaining_ticks = unlist(num_ticks - prev_bar[, .(TickCount)])[[1L]]
     prev_bar <- mergeBar(prev_bar, oneBarOHLCV(ticks[1:remaining_ticks]))
     ticks <- ticks[(remaining_ticks + 1L):.N]
   }
@@ -113,7 +113,7 @@ volumeOHLCV <- function(
 #' @export
 oneBarOHLCV <- function(ticks) {
   ticks <- ticks[, .(
-    timestamp = first(timestamp),
+    Timestamp = first(timestamp),
     Open = first(price),
     High = max(price),
     Low = min(price),
@@ -151,26 +151,26 @@ calculateTimeBucket <- function(datetime, seconds) {
 }
 
 mergeBar <- function(bar1, bar2) {
-  if (bar1[1L, timestamp] < bar2[1L, timestamp]) {
+  if (bar1[1L, Timestamp] <= bar2[1L, Timestamp]) {
     bar1[, ':='(
-      Low = min(bar1[, low], bar2[, low]),
-      High = max(bar1[, high], bar2[, high]),
-      Close = bar2[, close],
-      Volume = bar1[, volume] + bar2[, volume],
-      VWAP = (bar1[, vwap] * bar1[, volume] + bar2[, vwap] * bar2[, volume]) /
-        (bar1[, volume] + bar2[, volume]),
-      TickCount = bar1[, tickCount] + bar2[, tickCount]
+      Low = min(bar1[, Low], bar2[, Low]),
+      High = max(bar1[, High], bar2[, High]),
+      Close = bar2[, Close],
+      Volume = bar1[, Volume] + bar2[, Volume],
+      VWAP = (bar1[, VWAP] * bar1[, Volume] + bar2[, VWAP] * bar2[, Volume]) /
+        (bar1[, Volume] + bar2[, Volume]),
+      TickCount = bar1[, TickCount] + bar2[, TickCount]
     )]
     bar1
   } else {
     bar2[, ':='(
-      Low = min(bar1[, low], bar2[, low]),
-      High = max(bar1[, high], bar2[, high]),
-      Close = bar1[, close],
-      Volume = bar1[, volume] + bar2[, volume],
-      VWAP = (bar1[, vwap] * bar1[, volume] + bar2[, vwap] * bar2[, volume]) /
-        (bar1[, volume] + bar2[, volume]),
-      TickCount = bar1[, tickCount] + bar2[, tickCount]
+      Low = min(bar1[, Low], bar2[, Low]),
+      High = max(bar1[, High], bar2[, High]),
+      Close = bar1[, Close],
+      Volume = bar1[, Volume] + bar2[, Volume],
+      VWAP = (bar1[, VWAP] * bar1[, Volume] + bar2[, VWAP] * bar2[, Volume]) /
+        (bar1[, Volume] + bar2[, Volume]),
+      TickCount = bar1[, TickCount] + bar2[, TickCount]
     )]
     bar2
   }
