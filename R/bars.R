@@ -9,6 +9,8 @@
 #'   * minutes: one of `'m', 'mins', 'minutes`
 #'   * hours: one of `'h', 'hours`
 #'   * days: one of `'d', 'days'`
+#' @param name Name of the symbol.
+#' @param add_name Should the name of the symbol be added to the column names?
 #'
 #' @details
 #' Bars are aligned on multiples of the time period since midnight, that is a
@@ -32,13 +34,14 @@ timeOHLCV <- function(
   name = NULL,
   add_name = getOption('FancyBar.AddSymbolName')
 ) {
-  if (align_by %in% c('s', 'secs', 'seconds')) { # Do nothing.
+  align_period <- if (align_by %in% c('s', 'secs', 'seconds')) {
+    align_period
   } else if (align_by %in% c('m', 'mins', 'minutes')) {
-    align_period <- align_period * 60L
+    align_period * 60L
   } else if (aligin_by %in% c('h', 'hours')) {
-    align_period <- align_period * 60L * 60L
+    align_period * 60L * 60L
   } else if (aligin_by %in% c('d', 'days')) {
-    align_period <- align_period * 60L * 60L * 24L
+    align_period * 60L * 60L * 24L
   } else {
     stop('align_by ', align_by, ' not known')
   }
@@ -64,13 +67,13 @@ tickOHLCV <- function(ticks, num_ticks, prev_bar = NULL) {
   if (!is.null(prev_bar)) {
     remaining_ticks = num_ticks - prevbar[, tickCount]
     prev_bar <- mergeBar(prev_bar, oneBarOHLCV(ticks[1:remaining_ticks]))
-    ticks[(remaining_ticks + 1L):.N]
+    ticks <- ticks[(remaining_ticks + 1L):.N]
   }
   if (nrow(ticks) > 0L) {
     groups <- ceiling(1:nrow(ticks) / num_ticks)
-    applyGroup(rbind(prev_bar, ticks), groups)
+    rbind(prev_bar, applyGroup(ticks, groups))
   } else {
-    as.data.table(prev_bar)
+    data.table::as.data.table(prev_bar)
   }
 }
 
@@ -95,12 +98,31 @@ volumeOHLCV <- function(
     ticks <- ticks[rep(ID, times = multiplier)]
     ticks[
       multiplier > 1,
-      size := c(rep(target_volume, .N - 1L), .SD[1L, size] %% target_volume),
+      size := c(rep(target_volume, .N - 1L), first(size) %% target_volume),
       ID
     ]
   }
   groups <- find_volume_groups(ticks[, size], target_volume)
   applyGroup(ticks, groups)
+}
+
+#' Convert all ticks into one bar.
+#'
+#' @param ticks The ticks to convert
+#' @return All ticks convert to one OHCLV bar
+#' @export
+oneBarOHLCV <- function(ticks) {
+  ticks <- ticks[, .(
+    timestamp = first(timestamp),
+    Open = first(price),
+    High = max(price),
+    Low = min(price),
+    Close = last(price),
+    Volume = sum(size),
+    VWAP = sum(price * size) / sum(size),
+    TickCount = .N
+  )]
+  ticks
 }
 
 applyGroup <- function(ticks, groups) {
@@ -126,20 +148,6 @@ calculateTimeBucket <- function(datetime, seconds) {
     attr(timestamps, attr_name) <- input_attrs[[attr_name]]
   }
   timestamps
-}
-
-oneBarOHLCV <- function(ticks) {
-  ticks <- ticks[, .(
-    timestamp = first(timestamp),
-    Open = first(price),
-    High = max(price),
-    Low = min(price),
-    Close = last(price),
-    Volume = sum(size),
-    VWAP = sum(price * size) / sum(size),
-    TickCount = .N
-  )]
-  ticks
 }
 
 mergeBar <- function(bar1, bar2) {

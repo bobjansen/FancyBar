@@ -4,7 +4,13 @@
 \alias{timeOHLCV}
 \title{Make time based OHLC bars}
 \usage{
-timeOHLCV(ticks, align_period = 5L, align_by = "minutes")
+timeOHLCV(
+  ticks,
+  align_period = 5L,
+  align_by = "minutes",
+  name = NULL,
+  add_name = getOption("FancyBar.AddSymbolName")
+)
 }
 \arguments{
 \item{ticks}{The original trade data.}
@@ -18,6 +24,10 @@ timeOHLCV(ticks, align_period = 5L, align_by = "minutes")
 \item hours: one of \verb{'h', 'hours}
 \item days: one of \verb{'d', 'days'}
 }}
+
+\item{name}{Name of the symbol.}
+
+\item{add_name}{Should the name of the symbol be added to the column names?}
 }
 \value{
 Time based OHLC bars.
