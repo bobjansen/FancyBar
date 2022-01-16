@@ -13,7 +13,7 @@ test_trades <- data.table(
 )
 bar <- oneBarOHLCV(test_trades)
 expect_equal(names(bar), c(
-  'timestamp', 'Open', 'High', 'Low', 'Close', 'Volume', 'VWAP', 'TickCount')
+  'Timestamp', 'Open', 'High', 'Low', 'Close', 'Volume', 'VWAP', 'TickCount')
 )
 expect_equal(bar[, Open], 100)
 expect_equal(bar[, Low], 100)
@@ -32,7 +32,7 @@ test_trades <- data.table(
 )
 bar <- oneBarOHLCV(test_trades)
 expect_equal(names(bar), c(
-  'timestamp', 'Open', 'High', 'Low', 'Close', 'Volume', 'VWAP', 'TickCount')
+  'Timestamp', 'Open', 'High', 'Low', 'Close', 'Volume', 'VWAP', 'TickCount')
 )
 expect_equal(bar[, Open], 100)
 expect_equal(bar[, Low], 100)
@@ -51,7 +51,7 @@ test_trades <- data.table(
 )
 bar <- oneBarOHLCV(test_trades)
 expect_equal(names(bar), c(
-  'timestamp', 'Open', 'High', 'Low', 'Close', 'Volume', 'VWAP', 'TickCount')
+  'Timestamp', 'Open', 'High', 'Low', 'Close', 'Volume', 'VWAP', 'TickCount')
 )
 expect_equal(bar[, Open], 120)
 expect_equal(bar[, Low], 100)

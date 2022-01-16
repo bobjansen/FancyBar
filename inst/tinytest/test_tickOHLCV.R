@@ -69,7 +69,6 @@ expect_equal(bar[2L, VWAP], 750 / 7)
 expect_equal(bar[2L, Volume], 70L)
 expect_equal(bar[2L, TickCount], 2L)
 
-
 # Incomplete bar ----
 test_trades <- data.table(
   timestamp = jan1_2020,
