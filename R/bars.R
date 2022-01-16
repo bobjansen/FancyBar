@@ -10,6 +10,8 @@
 #'   * hours: one of `'h', 'hours`
 #'   * days: one of `'d', 'days'`
 #' @param name Name of the symbol.
+#' @param prev_bar Bar from a previous call to `timeOHLCV()` with an earlier
+#' set of trades.
 #' @param add_name Should the name of the symbol be added to the column names?
 #'
 #' @details
@@ -32,25 +34,40 @@ timeOHLCV <- function(
   ticks,
   align_period = 5L, align_by = 'minutes',
   name = NULL,
+  prev_bar = NULL,
   add_name = getOption('FancyBar.AddSymbolName')
 ) {
+  if (!add_name) {
+    name <- NULL
+  }
+
   align_period <- if (align_by %in% c('s', 'secs', 'seconds')) {
     align_period
   } else if (align_by %in% c('m', 'mins', 'minutes')) {
     align_period * 60L
-  } else if (aligin_by %in% c('h', 'hours')) {
+  } else if (align_by %in% c('h', 'hours')) {
     align_period * 60L * 60L
-  } else if (aligin_by %in% c('d', 'days')) {
+  } else if (align_by %in% c('d', 'days')) {
     align_period * 60L * 60L * 24L
   } else {
     stop('align_by ', align_by, ' not known')
   }
-  groups = calculateTimeBucket(ticks[['timestamp']], align_period)
+
+  groups = calculateTimeBucket(ticks[['Timestamp']], align_period)
   bars <- applyGroup(ticks, groups)
-  bars[, timestamp := unique(groups)]
-  if (!is.null(name) && add_name) {
+  bars[, Timestamp := unique(groups)]
+  if (!is.null(name)) {
     data.table::setnames(bars, names(bars), paste(name, names(bars), sep = '.'))
+
+    tsName <- paste(name, 'Timestamp', sep = '.')
+  } else {
+    tsName <- 'Timestamp'
   }
+  if (!is.null(prev_bar) && prev_bar[, ..tsName] == bars[1L, ..tsName]) {
+    prev_bar <- data.table::copy(prev_bar)
+    bars[1L] = mergeBar(prev_bar, bars[1L], name)
+  }
+
   bars
 }
 
@@ -93,16 +110,16 @@ volumeOHLCV <- function(
 ) {
   if (split_large_trades) {
     ticks <- ticks[, ':='(
-      ID = 1:.N, multiplier = ceiling(size / target_volume)
+      ID = 1:.N, multiplier = ceiling(Size / target_volume)
     )]
     ticks <- ticks[rep(ID, times = multiplier)]
     ticks[
       multiplier > 1,
-      size := c(rep(target_volume, .N - 1L), first(size) %% target_volume),
+      Size := c(rep(target_volume, .N - 1L), first(Size) %% target_volume),
       ID
     ]
   }
-  groups <- find_volume_groups(ticks[, size], target_volume)
+  groups <- find_volume_groups(ticks[, Size], target_volume)
   applyGroup(ticks, groups)
 }
 
@@ -113,13 +130,13 @@ volumeOHLCV <- function(
 #' @export
 oneBarOHLCV <- function(ticks) {
   ticks <- ticks[, .(
-    Timestamp = first(timestamp),
-    Open = first(price),
-    High = max(price),
-    Low = min(price),
-    Close = last(price),
-    Volume = sum(size),
-    VWAP = sum(price * size) / sum(size),
+    Timestamp = first(Timestamp),
+    Open = first(Price),
+    High = max(Price),
+    Low = min(Price),
+    Close = last(Price),
+    Volume = sum(Size),
+    VWAP = sum(Price * Size) / sum(Size),
     TickCount = .N
   )]
   ticks
@@ -127,13 +144,13 @@ oneBarOHLCV <- function(ticks) {
 
 applyGroup <- function(ticks, groups) {
   ticks <- ticks[, .(
-    Timestamp = first(timestamp),
-    Open = first(price),
-    High = max(price),
-    Low = min(price),
-    Close = last(price),
-    Volume = sum(size),
-    VWAP = sum(price * size) / sum(size),
+    Timestamp = first(Timestamp),
+    Open = first(Price),
+    High = max(Price),
+    Low = min(Price),
+    Close = last(Price),
+    Volume = sum(Size),
+    VWAP = sum(Price * Size) / sum(Size),
     TickCount = .N
   ), by = groups]
   ticks[, groups := NULL]
@@ -150,11 +167,24 @@ calculateTimeBucket <- function(datetime, seconds) {
   timestamps
 }
 
-mergeBar <- function(bar1, bar2) {
-  if (bar1[1L, Timestamp] <= bar2[1L, Timestamp]) {
+dropName <- function(bar, name) {
+  oldColNames <- names(bar)
+  data.table::setnames(
+    bar, oldColNames, substring(oldColNames, nchar(name) + 2L)
+  )
+  bar
+}
+
+mergeBar <- function(bar1, bar2, name = NULL) {
+  if (!is.null(name)) {
+    bar1 <- dropName(bar1, name)
+    bar2 <- dropName(bar2, name)
+  }
+
+  bar <- if (bar1[1L, Timestamp] <= bar2[1L, Timestamp]) {
     bar1[, ':='(
-      Low = min(bar1[, Low], bar2[, Low]),
       High = max(bar1[, High], bar2[, High]),
+      Low = min(bar1[, Low], bar2[, Low]),
       Close = bar2[, Close],
       Volume = bar1[, Volume] + bar2[, Volume],
       VWAP = (bar1[, VWAP] * bar1[, Volume] + bar2[, VWAP] * bar2[, Volume]) /
@@ -164,8 +194,8 @@ mergeBar <- function(bar1, bar2) {
     bar1
   } else {
     bar2[, ':='(
-      Low = min(bar1[, Low], bar2[, Low]),
       High = max(bar1[, High], bar2[, High]),
+      Low = min(bar1[, Low], bar2[, Low]),
       Close = bar1[, Close],
       Volume = bar1[, Volume] + bar2[, Volume],
       VWAP = (bar1[, VWAP] * bar1[, Volume] + bar2[, VWAP] * bar2[, Volume]) /
@@ -174,4 +204,8 @@ mergeBar <- function(bar1, bar2) {
     )]
     bar2
   }
+  if (!is.null(name)) {
+    data.table::setnames(bar, names(bar), paste(name, names(bar), sep = '.'))
+  }
+  bar
 }

@@ -9,6 +9,7 @@ timeOHLCV(
   align_period = 5L,
   align_by = "minutes",
   name = NULL,
+  prev_bar = NULL,
   add_name = getOption("FancyBar.AddSymbolName")
 )
 }
@@ -26,6 +27,9 @@ timeOHLCV(
 }}
 
 \item{name}{Name of the symbol.}
+
+\item{prev_bar}{Bar from a previous call to \code{timeOHLCV()} with an earlier
+set of trades.}
 
 \item{add_name}{Should the name of the symbol be added to the column names?}
 }

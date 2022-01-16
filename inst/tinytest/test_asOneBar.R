@@ -6,10 +6,10 @@ jan2_2020 <- as.POSIXct('2020-01-02')
 jan3_2020 <- as.POSIXct('2020-01-03')
 jan4_2020 <- as.POSIXct('2020-01-04')
 test_trades <- data.table(
-  timestamp = jan1_2020,
-  symbol = 'AAA',
-  price = 100,
-  size = 10L
+  Timestamp = jan1_2020,
+  Symbol = 'AAA',
+  Price = 100,
+  Size = 10L
 )
 bar <- oneBarOHLCV(test_trades)
 expect_equal(names(bar), c(
@@ -25,10 +25,10 @@ expect_equal(bar[, TickCount], 1L)
 
 # Two trade ----
 test_trades <- data.table(
-  timestamp = c(jan1_2020, jan2_2020),
-  symbol = 'AAA',
-  price = c(100, 110),
-  size = c(10L, 20L)
+  Timestamp = c(jan1_2020, jan2_2020),
+  Symbol = 'AAA',
+  Price = c(100, 110),
+  Size = c(10L, 20L)
 )
 bar <- oneBarOHLCV(test_trades)
 expect_equal(names(bar), c(
@@ -44,10 +44,10 @@ expect_equal(bar[, TickCount], 2L)
 
 # Four trade ----
 test_trades <- data.table(
-  timestamp = c(jan1_2020, jan2_2020, jan3_2020, jan4_2020),
-  symbol = 'AAA',
-  price = c(120, 100, 110, 105),
-  size = c(10L, 20L, 30L, 40L)
+  Timestamp = c(jan1_2020, jan2_2020, jan3_2020, jan4_2020),
+  Symbol = 'AAA',
+  Price = c(120, 100, 110, 105),
+  Size = c(10L, 20L, 30L, 40L)
 )
 bar <- oneBarOHLCV(test_trades)
 expect_equal(names(bar), c(

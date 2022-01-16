@@ -28,10 +28,10 @@ simulateTrades <- function(
   prices <- start_price + cumsum(price_delta)
   sizes <- as.integer(rgamma(N, 4, 0.01))
   trades <- data.table(
-    timestamp = timestamps,
-    symbol = symbol,
-    price = prices,
-    size = sizes
+    Timestamp = timestamps,
+    Symbol = symbol,
+    Price = prices,
+    Size = sizes
   )
 }
 
@@ -51,9 +51,9 @@ if (interactive()) {
   chartSeries(bars)
 }
 
-xts_trades = aaaTrades[, .(timestamp, price, volume = size)]
+xts_trades = aaaTrades[, .(Timestamp, Price, volume = Size)]
 hf_trades = aaaTrades[,
-  .(DT = timestamp, SYMBOL = symbol, PRICE = price, VOLUME = size)
+  .(DT = Timestamp, SYMBOL = Symbol, PRICE = Price, VOLUME = Size)
 ]
 
 print(microbenchmark(
@@ -65,9 +65,9 @@ print(microbenchmark(
 
 # Benchmarking for 2 symbols ----
 trades <- rbind(aaaTrades, bbbTrades)
-xts_trades = trades[, .(timestamp, symbol, price, volume = size)]
+xts_trades = trades[, .(Timestamp, Symbol, Price, volume = Size)]
 hf_trades = trades[,
-  .(DT = timestamp, SYMBOL = symbol, PRICE = price, VOLUME = size)
+  .(DT = Timestamp, SYMBOL = Symbol, PRICE = Price, VOLUME = Size)
 ]
 
 print(microbenchmark(
@@ -75,13 +75,13 @@ print(microbenchmark(
   times = 10L
 ))
 print(microbenchmark(
-  fb = aaaTrades[, timeOHLCV(.SD, name = first(symbol)), symbol],
+  fb = aaaTrades[, timeOHLCV(.SD, name = first(Symbol)), Symbol],
   times = 10L
 ))
 print(microbenchmark(
-  fb = trades[, timeOHLCV(.SD, symbol = first(symbol)), symbol],
+  fb = trades[, timeOHLCV(.SD, name = first(Symbol)), Symbol],
   xts = xts_trades[,
-    xts::to.minutes(.SD, k = 5L, symbol = first(symbol)), symbol
+    xts::to.minutes(.SD, k = 5L, symbol = first(Symbol)), Symbol
   ],
   hf = highfrequency::makeOHLCV(hf_trades),
   times = 10L
@@ -96,22 +96,22 @@ trades <- rbindlist(lapply(LETTERS[1:20], function(symbol) {
     symbol
   )
 }))
-xts_trades = trades[, .(timestamp, symbol, price, volume = size)]
+xts_trades = trades[, .(Timestamp, Symbol, Price, volume = Size)]
 hf_trades = trades[,
-  .(DT = timestamp, SYMBOL = symbol, PRICE = price, VOLUME = size)
+  .(DT = Timestamp, SYMBOL = Symbol, PRICE = Price, VOLUME = Size)
 ]
 print(microbenchmark(
-  fb = trades[, timeOHLCV(.SD, name = first(symbol)), symbol],
+  fb = trades[, timeOHLCV(.SD, name = first(Symbol)), Symbol],
   xts = xts_trades[,
-    xts::to.minutes(.SD, k = 5L, name = first(symbol)), symbol
+    xts::to.minutes(.SD, k = 5L, Symbol = first(Symbol)), Symbol
   ],
   hf = highfrequency::makeOHLCV(hf_trades),
   times = 10L
 ))
 print(microbenchmark(
-  fb = trades[, timeOHLCV(.SD, name = first(symbol)), symbol],
+  fb = trades[, timeOHLCV(.SD, name = first(Symbol)), Symbol],
   xts = xts_trades[,
-    xts::to.minutes(.SD, k = 5L, name = first(symbol)), symbol
+    xts::to.minutes(.SD, k = 5L, Symbol = first(Symbol)), Symbol
   ],
   times = 100L
 ))
