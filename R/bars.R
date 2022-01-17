@@ -55,7 +55,8 @@ timeOHLCV <- function(
 
   groups = calculateTimeBucket(ticks[['Timestamp']], align_period)
   bars <- applyGroup(ticks, groups)
-  bars[, Timestamp := unique(groups)]
+  bars[, Timestamp := NULL]
+  data.table::setnames(bars, 'Group', 'Timestamp')
   if (!is.null(name)) {
     data.table::setnames(bars, names(bars), paste(name, names(bars), sep = '.'))
 
@@ -88,7 +89,9 @@ tickOHLCV <- function(ticks, num_ticks, prev_bar = NULL) {
   }
   if (nrow(ticks) > 0L) {
     groups <- ceiling(1:nrow(ticks) / num_ticks)
-    rbind(prev_bar, applyGroup(ticks, groups))
+    bars <- applyGroup(ticks, groups)
+    bars[, Group := NULL]
+    rbind(prev_bar, bars)
   } else {
     data.table::as.data.table(prev_bar)
   }
@@ -142,8 +145,8 @@ oneBarOHLCV <- function(ticks) {
   ticks
 }
 
-applyGroup <- function(ticks, groups) {
-  ticks <- ticks[, .(
+applyGroup <- function(ticks, Group) {
+  bars <- ticks[, .(
     Timestamp = first(Timestamp),
     Open = first(Price),
     High = max(Price),
@@ -152,9 +155,8 @@ applyGroup <- function(ticks, groups) {
     Volume = sum(Size),
     VWAP = sum(Price * Size) / sum(Size),
     TickCount = .N
-  ), by = groups]
-  ticks[, groups := NULL]
-  ticks
+  ), by = Group]
+  bars
 }
 
 calculateTimeBucket <- function(datetime, seconds) {
