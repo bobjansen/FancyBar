@@ -5,6 +5,10 @@ library(quantmod)
 library(xts)
 library(FancyBar)
 
+num_threads <- data.table::getDTthreads()
+data.table::setDTthreads(threads = 1L)
+on.exit(data.table::setDTthreads(threads = num_threads))
+
 set.seed(20220102)
 
 simulateTrades <- function(
@@ -113,5 +117,5 @@ print(microbenchmark(
   xts = xts_trades[,
     xts::to.minutes(.SD, k = 5L, Symbol = first(Symbol)), Symbol
   ],
-  times = 100L
+  times = 25L
 ))
