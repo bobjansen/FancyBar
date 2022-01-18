@@ -21,7 +21,7 @@ devtools::install_github('bobjansen/FancyBar')
 
 # Benchmark
 
-On my machine, performance of creating time-based bars is comparable to
+On my machine, performance of creating time-based bars is slightly faster than
 `to.period()` in the
 [`xts`](https://cran.r-project.org/web/packages/xts/index.html) package and
 clearly faster than `makeOHLCV()` in the

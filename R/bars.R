@@ -163,9 +163,7 @@ calculateTimeBucket <- function(datetime, seconds) {
   timestamps <- as.integer(datetime)
   input_attrs <- attributes(datetime)
   timestamps <- timestamps - (timestamps %% seconds)
-  for (attr_name in names(input_attrs)) {
-    attr(timestamps, attr_name) <- input_attrs[[attr_name]]
-  }
+  attributes(timestamps) <- input_attrs
   timestamps
 }
 
