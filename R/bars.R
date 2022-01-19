@@ -128,6 +128,23 @@ volumeOHLCV <- function(
   bars
 }
 
+#' Dollars (or other monies) traded based OHLC bars
+#'
+#' Make OHLC bars containing at least a certain amount of money traded.
+#'
+#' @param ticks Tick trade data.
+#' @param target_volume The target volume for each bar.
+#'
+#' @import data.table
+#' @return OHLCV bars of similar money traded.
+dollarOHLCV <- function(ticks, target_volume) {
+  groups <- find_volume_groups(ticks[, Size * Price], target_volume)
+  bars <- applyGroup(ticks, groups)
+  bars[, Group := NULL]  # The group equals the row number and is meaningless
+  bars
+}
+
+
 #' Convert all ticks into one bar.
 #'
 #' @param ticks The ticks to convert
