@@ -123,7 +123,9 @@ volumeOHLCV <- function(
     ]
   }
   groups <- find_volume_groups(ticks[, Size], target_volume)
-  applyGroup(ticks, groups)
+  bars <- applyGroup(ticks, groups)
+  bars[, Group := NULL]  # The group equals the row number and is meaningless
+  bars
 }
 
 #' Convert all ticks into one bar.
