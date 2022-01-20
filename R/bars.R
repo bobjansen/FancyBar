@@ -144,7 +144,6 @@ dollarOHLCV <- function(ticks, target_volume) {
   bars
 }
 
-
 #' Convert all ticks into one bar.
 #'
 #' @param ticks The ticks to convert

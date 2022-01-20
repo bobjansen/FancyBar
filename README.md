@@ -6,6 +6,7 @@ following dimensions are supported:
 - Time with `timeOHLCV()`
 - Volume with `volumeOHLCV()`
 - Number of ticks `tickOHLCV()`
+- Dollar Volume (Price times Size) `dollarOHLCV()`
 
 as is converting a set of trades into one bar using `oneBarOHLCV()`. The bars
 contain additional columns compared to regular OHLCV data:
@@ -27,3 +28,5 @@ On my machine, performance of creating time-based bars is slightly faster than
 clearly faster than `makeOHLCV()` in the
 [`highfrequency`](https://cran.r-project.org/web/packages/highfrequency/index.html)
 package.
+
+The benchmarking script can be found in `inst/benchmark.R`.
