@@ -1,6 +1,6 @@
 # Introduction
 
-Create OHLC bars based on more than just time. Currently, bars based on the 
+Create OHLC bars based on more than just time. Currently, bars based on the
 following dimensions are supported:
 
 - Time with `timeOHLCV()`
@@ -24,9 +24,9 @@ devtools::install_github('bobjansen/FancyBar')
 
 On my machine, performance of creating time-based bars is slightly faster than
 `to.period()` in the
-[`xts`](https://cran.r-project.org/web/packages/xts/index.html) package and
+[`xts`](https://CRAN.R-project.org/package=xts) package and
 clearly faster than `makeOHLCV()` in the
-[`highfrequency`](https://cran.r-project.org/web/packages/highfrequency/index.html)
+[`highfrequency`](https://CRAN.R-project.org/package=highfrequency)
 package.
 
 The benchmarking script can be found in `inst/benchmark.R`.
