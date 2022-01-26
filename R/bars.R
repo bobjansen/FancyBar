@@ -107,6 +107,7 @@ tickOHLCV <- function(ticks, num_ticks, prev_bar = NULL) {
 #' more bars.
 #'
 #' @import data.table
+#' @export
 #' @return OHLCV bars of similar volume.
 volumeOHLCV <- function(
   ticks, target_volume, split_large_trades = FALSE
@@ -136,6 +137,7 @@ volumeOHLCV <- function(
 #' @param target_volume The target volume for each bar.
 #'
 #' @import data.table
+#' @export
 #' @return OHLCV bars of similar money traded.
 dollarOHLCV <- function(ticks, target_volume) {
   groups <- find_volume_groups(ticks[, Size * Price], target_volume)
